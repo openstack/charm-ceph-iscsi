@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
 
+# Copyright 2020 Canonical Ltd.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+"""Charm for deploying and maintaining the Ceph iSCSI service."""
+
 import socket
 import logging
 import os
@@ -30,42 +46,58 @@ logger = logging.getLogger(__name__)
 
 
 class CephClientAdapter(ops_openstack.adapters.OpenStackOperRelationAdapter):
-
-    def __init__(self, relation):
-        super(CephClientAdapter, self).__init__(relation)
+    """Adapter for ceph client interface."""
 
     @property
     def mon_hosts(self):
+        """Sorted list of ceph mon addresses.
+
+        :returns: Ceph MON addresses.
+        :rtype: str
+        """
         hosts = self.relation.get_relation_data()['mon_hosts']
         return ' '.join(sorted(hosts))
 
     @property
     def auth_supported(self):
+        """Authention type.
+
+        :returns: Authention type
+        :rtype: str
+        """
         return self.relation.get_relation_data()['auth']
 
     @property
     def key(self):
+        """Key client should use when communicating with Ceph cluster.
+
+        :returns: Key
+        :rtype: str
+        """
         return self.relation.get_relation_data()['key']
 
 
-class PeerAdapter(ops_openstack.adapters.OpenStackOperRelationAdapter):
-
-    def __init__(self, relation):
-        super(PeerAdapter, self).__init__(relation)
-
-
-class GatewayClientPeerAdapter(PeerAdapter):
-
-    def __init__(self, relation):
-        super(GatewayClientPeerAdapter, self).__init__(relation)
+class GatewayClientPeerAdapter(
+        ops_openstack.adapters.OpenStackOperRelationAdapter):
+    """Adapter for Ceph iSCSI peer interface."""
 
     @property
     def gw_hosts(self):
+        """List of peer addresses.
+
+        :returns: Ceph iSCSI peer addresses.
+        :rtype: str
+        """
         hosts = self.relation.peer_addresses
         return ' '.join(sorted(hosts))
 
     @property
     def trusted_ips(self):
+        """List of IP addresses permitted to use API.
+
+        :returns: Ceph iSCSI trusted ips.
+        :rtype: str
+        """
         ips = self.allowed_ips
         ips.extend(self.relation.peer_addresses)
         return ' '.join(sorted(ips))
@@ -73,12 +105,15 @@ class GatewayClientPeerAdapter(PeerAdapter):
 
 class TLSCertificatesAdapter(
         ops_openstack.adapters.OpenStackOperRelationAdapter):
-
-    def __init__(self, relation):
-        super(TLSCertificatesAdapter, self).__init__(relation)
+    """Adapter for Ceph TLS Certificates interface."""
 
     @property
     def enable_tls(self):
+        """Whether to enable TLS.
+
+        :returns: Whether TLS should be enabled
+        :rtype: bool
+        """
         try:
             return bool(self.relation.application_certificate)
         except ca_client.CAClientError:
@@ -87,6 +122,7 @@ class TLSCertificatesAdapter(
 
 class CephISCSIGatewayAdapters(
         ops_openstack.adapters.OpenStackRelationAdapters):
+    """Collection of relation adapters."""
 
     relation_adapters = {
         'ceph-client': CephClientAdapter,
@@ -96,6 +132,7 @@ class CephISCSIGatewayAdapters(
 
 
 class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
+    """Ceph iSCSI Base Charm."""
 
     state = StoredState()
     PACKAGES = ['ceph-iscsi', 'tcmu-runner', 'ceph-common']
@@ -133,6 +170,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
     release = 'default'
 
     def __init__(self, framework):
+        """Setup adapters and observers."""
         super().__init__(framework)
         logging.info("Using {} class".format(self.release))
         self.state.set_default(
@@ -182,6 +220,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             self.on_add_trusted_ip_action)
 
     def on_install(self, event):
+        """Install packages and check substrate is supported."""
         if ch_host.is_container():
             logging.info("Installing into a container is not supported")
             self.update_status()
@@ -189,6 +228,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             self.install_pkgs()
 
     def on_has_peers(self, event):
+        """Setup and share admin password."""
         logging.info("Unit has peers")
         if self.unit.is_leader() and not self.peers.admin_password:
             logging.info("Setting admin password")
@@ -197,6 +237,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             self.peers.set_admin_password(password)
 
     def request_ceph_pool(self, event):
+        """Request pools from Ceph cluster."""
         logging.info("Requesting replicated pool")
         self.ceph_client.create_replicated_pool(
             self.model.config['rbd-metadata-pool'])
@@ -209,17 +250,17 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             'osd heartbeat interval': 5})
 
     def refresh_request(self, event):
+        """Re-request Ceph pools and render config."""
         self.render_config(event)
         self.request_ceph_pool(event)
 
     def render_config(self, event):
+        """Render config and restart services if config files change."""
         if not self.peers.admin_password:
             logging.info("Defering setup")
-            print("Defering setup admin")
             event.defer()
             return
         if not self.ceph_client.pools_available:
-            print("Defering setup pools")
             logging.info("Defering setup")
             event.defer()
             return
@@ -251,6 +292,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         logging.info("on_pools_available: status updated")
 
     def on_ca_available(self, event):
+        """Request TLS certificates."""
         addresses = set()
         for binding_name in ['public', 'cluster']:
             binding = self.model.get_binding(binding_name)
@@ -261,6 +303,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         self.ca_client.request_application_certificate(socket.getfqdn(), sans)
 
     def on_tls_app_config_ready(self, event):
+        """Configure TLS."""
         self.TLS_KEY_PATH.write_bytes(
             self.ca_client.application_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -290,6 +333,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         self.render_config(event)
 
     def custom_status_check(self):
+        """Custom update status checks."""
         if ch_host.is_container():
             self.unit.status = ops.model.BlockedStatus(
                 'Charm cannot be deployed into a container')
@@ -303,6 +347,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
     # Actions
 
     def on_add_trusted_ip_action(self, event):
+        """Add an IP to the allowed list for API access."""
         if self.unit.is_leader():
             ips = event.params.get('ips').split()
             self.peers.set_allowed_ips(
@@ -313,6 +358,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             event.fail("Action must be run on leader")
 
     def on_create_target_action(self, event):
+        """Create an iSCSI taget."""
         gw_client = gwcli_client.GatewayClient()
         target = event.params.get('iqn', self.DEFAULT_TARGET)
         gateway_units = event.params.get(
@@ -348,14 +394,8 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
 
 
 @ops_openstack.core.charm_class
-class CephISCSIGatewayCharmJewel(CephISCSIGatewayCharmBase):
-
-    state = StoredState()
-    release = 'jewel'
-
-
-@ops_openstack.core.charm_class
 class CephISCSIGatewayCharmOcto(CephISCSIGatewayCharmBase):
+    """Ceph iSCSI Charm for Octopus."""
 
     state = StoredState()
     release = 'octopus'
