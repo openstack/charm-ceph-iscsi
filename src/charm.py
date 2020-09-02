@@ -134,7 +134,7 @@ class CephISCSIGatewayAdapters(
 class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
     """Ceph iSCSI Base Charm."""
 
-    state = StoredState()
+    _stored = StoredState()
     PACKAGES = ['ceph-iscsi', 'tcmu-runner', 'ceph-common']
     CEPH_CAPABILITIES = [
         "osd", "allow *",
@@ -173,7 +173,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         """Setup adapters and observers."""
         super().__init__(framework)
         logging.info("Using {} class".format(self.release))
-        self.state.set_default(
+        self._stored.set_default(
             target_created=False,
             enable_tls=False)
         self.ceph_client = ceph_client.CephClientRequires(
@@ -287,7 +287,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         _render_configs()
         logging.info("Setting started state")
         self.peers.announce_ready()
-        self.state.is_started = True
+        self._stored.is_started = True
         self.update_status()
         logging.info("on_pools_available: status updated")
 
@@ -329,7 +329,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
                 format=serialization.PublicFormat.SubjectPublicKeyInfo,
                 encoding=serialization.Encoding.PEM))
         subprocess.check_call(['update-ca-certificates'])
-        self.state.enable_tls = True
+        self._stored.enable_tls = True
         self.render_config(event)
 
     def custom_status_check(self):
@@ -397,7 +397,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
 class CephISCSIGatewayCharmOcto(CephISCSIGatewayCharmBase):
     """Ceph iSCSI Charm for Octopus."""
 
-    state = StoredState()
+    _stored = StoredState()
     release = 'octopus'
 
 if __name__ == '__main__':

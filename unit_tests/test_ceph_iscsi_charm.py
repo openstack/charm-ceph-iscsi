@@ -170,8 +170,8 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
 
     def test_init(self):
         self.harness.begin()
-        self.assertFalse(self.harness.charm.state.target_created)
-        self.assertFalse(self.harness.charm.state.enable_tls)
+        self.assertFalse(self.harness.charm._stored.target_created)
+        self.assertFalse(self.harness.charm._stored.enable_tls)
 
     def add_cluster_relation(self):
         rel_id = self.harness.add_relation('cluster', 'ceph-iscsi')
@@ -329,7 +329,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             {'admin_password': 'existing password',
              'gateway_ready': False})
         self.harness.begin()
-        self.harness.charm.ceph_client.state.pools_available = True
+        self.harness.charm.ceph_client._stored.pools_available = True
         with patch.object(Path, 'mkdir') as mock_mkdir:
             self.harness.charm.ceph_client.on.pools_available.emit()
             mock_mkdir.assert_called_once_with(exist_ok=True, mode=488)
@@ -340,7 +340,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
                 'ceph.client.ceph-iscsi.keyring',
                 '/etc/ceph/iscsi/ceph.client.ceph-iscsi.keyring', ANY)],
             any_order=True)
-        self.assertTrue(self.harness.charm.state.is_started)
+        self.assertTrue(self.harness.charm._stored.is_started)
         rel_data = self.harness.get_relation_data(rel_id, 'ceph-iscsi/0')
         self.assertEqual(rel_data['gateway_ready'], 'True')
 
@@ -399,7 +399,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         mock_TLS_PUB_KEY_PATH.write_bytes.assert_called_once()
         self.subprocess.check_call.assert_called_once_with(
             ['update-ca-certificates'])
-        self.assertTrue(self.harness.charm.state.enable_tls)
+        self.assertTrue(self.harness.charm._stored.enable_tls)
 
     def test_custom_status_check(self):
         self.harness.add_relation('ceph-client', 'ceph-mon')
