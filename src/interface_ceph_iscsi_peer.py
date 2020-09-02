@@ -63,13 +63,13 @@ class CephISCSIGatewayPeers(Object):
         self.peer_rel.data[self.peer_rel.app][self.PASSWORD_KEY] = password
 
     def set_allowed_ips(self, ips, append=True):
-        logging.info("Setting allowed ips: {}".format(append))
         trusted_ips = []
         if append and self.allowed_ips:
             trusted_ips = self.allowed_ips
         trusted_ips.extend(ips)
         trusted_ips = sorted(list(set(trusted_ips)))
         ip_str = json.dumps(trusted_ips)
+        logging.info("Setting allowed ips to: %s", ip_str)
         self.peer_rel.data[self.peer_rel.app][self.ALLOWED_IPS_KEY] = ip_str
 
     def announce_ready(self):
