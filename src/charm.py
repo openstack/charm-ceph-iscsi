@@ -16,6 +16,7 @@
 
 """Charm for deploying and maintaining the Ceph iSCSI service."""
 
+import copy
 import socket
 import logging
 import os
@@ -98,7 +99,7 @@ class GatewayClientPeerAdapter(
         :returns: Ceph iSCSI trusted ips.
         :rtype: str
         """
-        ips = self.allowed_ips
+        ips = copy.deepcopy(self.allowed_ips)
         ips.extend(self.relation.peer_addresses)
         return ' '.join(sorted(ips))
 
