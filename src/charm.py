@@ -60,9 +60,9 @@ class CephClientAdapter(ops_openstack.adapters.OpenStackOperRelationAdapter):
 
     @property
     def auth_supported(self):
-        """Authention type.
+        """Authentication type.
 
-        :returns: Authention type
+        :returns: Authentication type
         :rtype: str
         """
         return self.relation.get_relation_data()['auth']
@@ -358,7 +358,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             event.fail("Action must be run on leader")
 
     def on_create_target_action(self, event):
-        """Create an iSCSI taget."""
+        """Create an iSCSI target."""
         gw_client = gwcli_client.GatewayClient()
         target = event.params.get('iqn', self.DEFAULT_TARGET)
         gateway_units = event.params.get(
@@ -399,6 +399,7 @@ class CephISCSIGatewayCharmOcto(CephISCSIGatewayCharmBase):
 
     state = StoredState()
     release = 'octopus'
+
 
 if __name__ == '__main__':
     main(ops_openstack.core.get_charm_class_for_release())
