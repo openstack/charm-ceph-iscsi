@@ -33,7 +33,7 @@ class CephISCSIGatewayPeerEvents(ObjectEvents):
 class CephISCSIGatewayPeers(Object):
 
     on = CephISCSIGatewayPeerEvents()
-    state = StoredState()
+    _stored = StoredState()
     PASSWORD_KEY = 'admin_password'
     READY_KEY = 'gateway_ready'
     FQDN_KEY = 'gateway_fqdn'
@@ -43,7 +43,7 @@ class CephISCSIGatewayPeers(Object):
         super().__init__(charm, relation_name)
         self.relation_name = relation_name
         self.this_unit = self.framework.model.unit
-        self.state.set_default(
+        self._stored.set_default(
             allowed_ips=[])
         self.framework.observe(
             charm.on[relation_name].relation_changed,
@@ -54,9 +54,9 @@ class CephISCSIGatewayPeers(Object):
         self.on.has_peers.emit()
         if self.ready_peer_details:
             self.on.ready_peers.emit()
-        if self.allowed_ips != self.state.allowed_ips:
+        if self.allowed_ips != self._stored.allowed_ips:
             self.on.allowed_ips_changed.emit()
-        self.state.allowed_ips = self.allowed_ips
+        self._stored.allowed_ips = self.allowed_ips
 
     def set_admin_password(self, password):
         logging.info("Setting admin password")
