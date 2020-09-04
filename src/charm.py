@@ -173,7 +173,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
     def __init__(self, framework):
         """Setup adapters and observers."""
         super().__init__(framework)
-        logging.info("Using {} class".format(self.release))
+        logging.info("Using %s class", self.release)
         self._stored.set_default(
             target_created=False,
             enable_tls=False)
