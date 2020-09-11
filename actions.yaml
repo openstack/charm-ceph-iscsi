@@ -40,10 +40,14 @@ create-target:
       type: string
       default: disk_1
       description: "Image name "
-    pool-name:
+    rbd-pool-name:
       type: string
       default: iscsi
       description: "Name of ceph pool to use to back target "
+    ec-rbd-metadata-pool:
+      type: string
+      default: iscsi
+      description: "Name of the metadata pool to use with rbd-pool-name if rbd-pool-name is erasure coded."
     client-initiatorname:
       type: string
       description: "The initiator name of the client that will mount the target"
@@ -54,7 +58,7 @@ create-target:
       type: string
       description: "The CHAPs password to be created for the client"
   required:
-    - pool-name
+    - rbd-pool-name
     - image-size
     - image-name
     - client-initiatorname
