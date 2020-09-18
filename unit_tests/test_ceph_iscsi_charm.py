@@ -197,7 +197,8 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         action_event.params = {
             'iqn': 'iqn.mock.iscsi-gw:iscsi-igw',
             'gateway-units': 'ceph-iscsi/0 ceph-iscsi/1',
-            'pool-name': 'iscsi-pool',
+            'rbd-pool-name': 'iscsi-pool',
+            'ec-rbd-metadata-pool': '',
             'image-name': 'disk1',
             'image-size': '5G',
             'client-initiatorname': 'client-initiator',
@@ -230,6 +231,60 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'iqn.mock.iscsi-gw:iscsi-igw',
             'client-initiator',
             'iscsi-pool',
+            'disk1')
+
+    @patch('socket.getfqdn')
+    def test_on_create_target_action_ec(self, _getfqdn):
+        _getfqdn.return_value = 'ceph-iscsi-0.example'
+        self.add_cluster_relation()
+        self.harness.begin()
+        action_event = MagicMock()
+        action_event.params = {
+            'iqn': 'iqn.mock.iscsi-gw:iscsi-igw',
+            'gateway-units': 'ceph-iscsi/0 ceph-iscsi/1',
+            'rbd-pool-name': 'iscsi-pool',
+            'ec-rbd-metadata-pool': 'iscsi-metapool',
+            'image-name': 'disk1',
+            'image-size': '5G',
+            'client-initiatorname': 'client-initiator',
+            'client-username': 'myusername',
+            'client-password': 'mypassword'}
+        self.harness.charm.on_create_target_action(action_event)
+        self.subprocess.check_call.assert_called_once_with(
+            [
+                'rbd',
+                '--user', 'ceph-iscsi',
+                '--conf', '/etc/ceph/iscsi/ceph.conf',
+                'create',
+                '--size', '5G',
+                'iscsi-metapool/disk1',
+                '--data-pool', 'iscsi-pool'])
+        self.gwc.add_gateway_to_target.assert_has_calls([
+            call(
+                'iqn.mock.iscsi-gw:iscsi-igw',
+                '10.0.0.10',
+                'ceph-iscsi-0.example'),
+            call(
+                'iqn.mock.iscsi-gw:iscsi-igw',
+                '10.0.0.2',
+                'ceph-iscsi-1.example')])
+
+        self.gwc.create_pool.assert_called_once_with(
+            'iscsi-metapool',
+            'disk1',
+            '5G')
+        self.gwc.add_client_to_target.assert_called_once_with(
+            'iqn.mock.iscsi-gw:iscsi-igw',
+            'client-initiator')
+        self.gwc.add_client_auth.assert_called_once_with(
+            'iqn.mock.iscsi-gw:iscsi-igw',
+            'client-initiator',
+            'myusername',
+            'mypassword')
+        self.gwc.add_disk_to_client.assert_called_once_with(
+            'iqn.mock.iscsi-gw:iscsi-igw',
+            'client-initiator',
+            'iscsi-metapool',
             'disk1')
 
     @patch.object(charm.secrets, 'choice')

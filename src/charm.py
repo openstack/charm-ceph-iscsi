@@ -365,6 +365,24 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         gateway_units = event.params.get(
             'gateway-units',
             [u for u in self.peers.ready_peer_details.keys()])
+        if event.params['ec-rbd-metadata-pool']:
+            # When using erasure-coded pools the image needs to be pre-created
+            # as the gwcli does not currently handle the creation.
+            cmd = [
+                'rbd',
+                '--user', 'ceph-iscsi',
+                '--conf', str(self.CEPH_CONF),
+                'create',
+                '--size', event.params['image-size'],
+                '{}/{}'.format(
+                    event.params['ec-rbd-metadata-pool'],
+                    event.params['image-name']),
+                '--data-pool', event.params['rbd-pool-name']]
+            logging.info(cmd)
+            subprocess.check_call(cmd)
+            target_pool = event.params['ec-rbd-metadata-pool']
+        else:
+            target_pool = event.params['rbd-pool-name']
         gw_client.create_target(target)
         for gw_unit, gw_config in self.peers.ready_peer_details.items():
             added_gateways = []
@@ -375,7 +393,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
                     gw_config['fqdn'])
                 added_gateways.append(gw_unit)
         gw_client.create_pool(
-            event.params['pool-name'],
+            target_pool,
             event.params['image-name'],
             event.params['image-size'])
         gw_client.add_client_to_target(
@@ -389,7 +407,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         gw_client.add_disk_to_client(
             target,
             event.params['client-initiatorname'],
-            event.params['pool-name'],
+            target_pool,
             event.params['image-name'])
         event.set_results({'iqn': target})
 
