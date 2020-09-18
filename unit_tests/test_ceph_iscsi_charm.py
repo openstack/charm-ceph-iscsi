@@ -338,7 +338,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.maxDiff = None
         rel_id = self.harness.add_relation('ceph-client', 'ceph-mon')
         self.harness.update_config(
-            key_values={'rbd-metadata-pool': 'iscsi-pool'})
+            key_values={'gateway-metadata-pool': 'iscsi-pool'})
         self.harness.begin()
         self.harness.add_relation_unit(
             rel_id,
@@ -366,25 +366,43 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
                 'compression-mode': None,
                 'compression-required-ratio': None,
                 'app-name': None,
+                'op': 'create-pool',
+                'name': 'iscsi-pool',
+                'replicas': 3,
+                'pg_num': None,
+                'weight': None,
                 'group': None,
                 'group-namespace': None,
+                'app-name': None,
                 'max-bytes': None,
-                'max-objects': None,
-                'name': 'iscsi-pool',
+                'max-objects': None},
+             {
+                'compression-algorithm': None,
+                'compression-max-blob-size': None,
+                'compression-max-blob-size-hdd': None,
+                'compression-max-blob-size-ssd': None,
+                'compression-min-blob-size': None,
+                'compression-min-blob-size-hdd': None,
+                'compression-min-blob-size-ssd': None,
+                'compression-mode': None,
+                'compression-required-ratio': None,
                 'op': 'create-pool',
+                'name': 'ceph-iscsi',
+                'replicas': None,
                 'pg_num': None,
-                'replicas': 3,
-                'weight': None},
-                {
-                    'client': 'ceph-iscsi',
-                    'op': 'set-key-permissions',
-                    'permissions': [
-                        'osd',
-                        'allow *',
-                        'mon',
-                        'allow *',
-                        'mgr',
-                        'allow r']}])
+                'weight': None,
+                'group': None,
+                'group-namespace': None,
+                'app-name': None,
+                'max-bytes': None,
+                'max-objects': None},
+             {
+                 'op': 'set-key-permissions',
+                 'permissions': [
+                     'osd', 'allow *',
+                     'mon', 'allow *',
+                     'mgr', 'allow r'],
+                 'client': 'ceph-iscsi'}])
 
     def test_on_pools_available(self):
         self.os.path.exists.return_value = False

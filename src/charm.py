@@ -237,11 +237,100 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             password = ''.join(secrets.choice(alphabet) for i in range(8))
             self.peers.set_admin_password(password)
 
+    def config_get(self, key):
+        """Retrieve config option.
+
+        :returns: Value of the corresponding config option or None.
+        :rtype: Any
+        """
+        return self.model.config.get(key)
+
+    @property
+    def data_pool_name(self):
+        """The name of the default rbd data pool to be used by targets.
+
+        :returns: Data pool name.
+        :rtype: str
+        """
+        if self.config_get('rbd-pool-name'):
+            pool_name = self.config_get('rbd-pool-name')
+        else:
+            pool_name = self.app.name
+        return pool_name
+
+    @property
+    def metadata_pool_name(self):
+        """The name of the default rbd metadata pool to be used by targets.
+
+        :returns: Metadata pool name.
+        :rtype: str
+        """
+        return (self.config_get('ec-rbd-metadata-pool') or
+                "{}-metadata".format(self.app.name))
+
     def request_ceph_pool(self, event):
         """Request pools from Ceph cluster."""
         logging.info("Requesting replicated pool")
         self.ceph_client.create_replicated_pool(
-            self.model.config['rbd-metadata-pool'])
+            self.config_get('gateway-metadata-pool'))
+        weight = self.config_get('ceph-pool-weight')
+        replicas = self.config_get('ceph-osd-replication-count')
+        if self.config_get('pool-type') == 'erasure-coded':
+            # General EC plugin config
+            plugin = self.config_get('ec-profile-plugin')
+            technique = self.config_get('ec-profile-technique')
+            device_class = self.config_get('ec-profile-device-class')
+            bdm_k = self.config_get('ec-profile-k')
+            bdm_m = self.config_get('ec-profile-m')
+            # LRC plugin config
+            bdm_l = self.config_get('ec-profile-locality')
+            crush_locality = self.config_get('ec-profile-crush-locality')
+            # SHEC plugin config
+            bdm_c = self.config_get('ec-profile-durability-estimator')
+            # CLAY plugin config
+            bdm_d = self.config_get('ec-profile-helper-chunks')
+            scalar_mds = self.config_get('ec-profile-scalar-mds')
+            # Profile name
+            profile_name = (
+                self.config_get('ec-profile-name') or
+                "{}-profile".format(self.app.name)
+            )
+            # Metadata sizing is approximately 1% of overall data weight
+            # but is in effect driven by the number of rbd's rather than
+            # their size - so it can be very lightweight.
+            metadata_weight = weight * 0.01
+            # Resize data pool weight to accomodate metadata weight
+            weight = weight - metadata_weight
+            # Create erasure profile
+            self.ceph_client.create_erasure_profile(
+                name=profile_name,
+                k=bdm_k, m=bdm_m,
+                lrc_locality=bdm_l,
+                lrc_crush_locality=crush_locality,
+                shec_durability_estimator=bdm_c,
+                clay_helper_chunks=bdm_d,
+                clay_scalar_mds=scalar_mds,
+                device_class=device_class,
+                erasure_type=plugin,
+                erasure_technique=technique
+            )
+
+            # Create EC data pool
+            self.ceph_client.create_erasure_pool(
+                name=self.data_pool_name,
+                erasure_profile=profile_name,
+                weight=weight,
+                allow_ec_overwrites=True
+            )
+            self.ceph_client.create_replicated_pool(
+                name=self.metadata_pool_name,
+                weight=metadata_weight
+            )
+        else:
+            self.ceph_client.create_replicated_pool(
+                name=self.data_pool_name,
+                replicas=replicas,
+                weight=weight)
         logging.info("Requesting permissions")
         self.ceph_client.request_ceph_permissions(
             'ceph-iscsi',
@@ -358,6 +447,22 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         else:
             event.fail("Action must be run on leader")
 
+    def calculate_target_pools(self, event):
+        if event.params['ec-rbd-metadata-pool']:
+            ec_rbd_metadata_pool = event.params['ec-rbd-metadata-pool']
+            rbd_pool_name = event.params['rbd-pool-name']
+        elif event.params['rbd-pool-name']:
+            ec_rbd_metadata_pool = None
+            rbd_pool_name = event.params['rbd-pool-name']
+        # Action did not specify pools to derive them from charm config.
+        elif self.model.config['pool-type'] == 'erasure-coded':
+            ec_rbd_metadata_pool = self.metadata_pool_name
+            rbd_pool_name = self.data_pool_name
+        else:
+            ec_rbd_metadata_pool = None
+            rbd_pool_name = self.data_pool_name
+        return rbd_pool_name, ec_rbd_metadata_pool
+
     def on_create_target_action(self, event):
         """Create an iSCSI target."""
         gw_client = gwcli_client.GatewayClient()
@@ -365,7 +470,9 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         gateway_units = event.params.get(
             'gateway-units',
             [u for u in self.peers.ready_peer_details.keys()])
-        if event.params['ec-rbd-metadata-pool']:
+        rbd_pool_name, ec_rbd_metadata_pool = self.calculate_target_pools(
+            event)
+        if ec_rbd_metadata_pool:
             # When using erasure-coded pools the image needs to be pre-created
             # as the gwcli does not currently handle the creation.
             cmd = [
@@ -375,14 +482,14 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
                 'create',
                 '--size', event.params['image-size'],
                 '{}/{}'.format(
-                    event.params['ec-rbd-metadata-pool'],
+                    ec_rbd_metadata_pool,
                     event.params['image-name']),
-                '--data-pool', event.params['rbd-pool-name']]
+                '--data-pool', rbd_pool_name]
             logging.info(cmd)
             subprocess.check_call(cmd)
-            target_pool = event.params['ec-rbd-metadata-pool']
+            target_pool = ec_rbd_metadata_pool
         else:
-            target_pool = event.params['rbd-pool-name']
+            target_pool = rbd_pool_name
         gw_client.create_target(target)
         for gw_unit, gw_config in self.peers.ready_peer_details.items():
             added_gateways = []

@@ -58,7 +58,6 @@ create-target:
       type: string
       description: "The CHAPs password to be created for the client"
   required:
-    - rbd-pool-name
     - image-size
     - image-name
     - client-initiatorname

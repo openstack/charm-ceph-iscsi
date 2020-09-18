@@ -33,6 +33,9 @@ applications:
     num_units: 2
     options:
       gateway-metadata-pool: tmbtil
+      pool-type: erasure-coded
+      ec-profile-k: 4
+      ec-profile-m: 2
     to:
       - '0'
       - '1'
