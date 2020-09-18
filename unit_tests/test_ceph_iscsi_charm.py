@@ -23,7 +23,7 @@ from pathlib import Path
 sys.path.append('lib')  # noqa
 sys.path.append('src')  # noqa
 
-from mock import call, patch, MagicMock, ANY
+from mock import call, patch, MagicMock, ANY, Mock
 
 from ops.testing import Harness, _TestingModelBackend
 from ops.model import (
@@ -31,7 +31,9 @@ from ops.model import (
 )
 from ops import framework, model
 
-import charm
+with patch('charmhelpers.core.host_factory.ubuntu.cmp_pkgrevno',
+           Mock(return_value=1)):
+    import charm
 
 TEST_CA = '''-----BEGIN CERTIFICATE-----
 MIIC8TCCAdmgAwIBAgIUIchLT42Gy3QexrQbppgWb+xF2SgwDQYJKoZIhvcNAQEL
@@ -333,6 +335,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'existing password')
 
     def test_on_ceph_client_relation_joined(self):
+        self.maxDiff = None
         rel_id = self.harness.add_relation('ceph-client', 'ceph-mon')
         self.harness.update_config(
             key_values={'rbd-metadata-pool': 'iscsi-pool'})
@@ -353,6 +356,15 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.assertEqual(
             req_pool['ops'],
             [{
+                'compression-algorithm': None,
+                'compression-max-blob-size': None,
+                'compression-max-blob-size-hdd': None,
+                'compression-max-blob-size-ssd': None,
+                'compression-min-blob-size': None,
+                'compression-min-blob-size-hdd': None,
+                'compression-min-blob-size-ssd': None,
+                'compression-mode': None,
+                'compression-required-ratio': None,
                 'app-name': None,
                 'group': None,
                 'group-namespace': None,
