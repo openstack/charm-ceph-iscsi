@@ -31,7 +31,9 @@ Then add a relation to the ceph-mon application:
 
 * Deploying four ceph-iscsi units is theoretical possible but it is not an
   officially supported configuration.
+
 * The ceph-iscsi application cannot be containerised.
+
 * Co-locating ceph-iscsi with another application is only supported with
   ceph-osd, although doing so with other applications may still work.
 
@@ -85,59 +87,9 @@ and is available from any ceph-iscsi unit:
 
 ## VMWare integration
 
-Ceph can be used to back iSCSI targets for VMWare initiators.
-
-Begin by accessing the VMWare admin web UI.
-
-These instructions were written using VMWare ESXi 6.7.0.
-
-### Create a Ceph pool
-
-If desired, create a Ceph pool to back the VMWare targets with the ceph-mon
-charm's `create-pool` action:
-
-    juju run-action --wait ceph-mon/0 create-pool name=vmware-iscsi
-
-### Enable the initiator
-
-From the web UI select the `Adapters` tab in the `Storage` context. Click
-`Configure iSCSI` and enable iSCSI.
-
-Take a note of the initiator name, or UID. Here the UID we'll use is
-`iqn.1998-01.com.vmware:node-gadomski-6a5e962a`.
-
-### Create an iSCSI target
-
-With the `create-target` action create a target for VMWare to use. Use the pool
-that may have been created previously:
-
-    juju run-action --wait ceph-iscsi/0 create-target \
-       client-initiatorname=iqn.1998-01.com.vmware:node-gadomski-6a5e962a \
-       client-username=vmwareclient \
-       client-password=12to16characters \
-       image-size=5G \
-       image-name=disk-1 \
-       pool-name=vmware-iscsi
-
-> **Note**: VMWare imposes a policy on credentials. The username should be more
-  than eight characters and the password between twelve and sixteen characters.
-
-### Add a target to VMWare
-
-Follow the [Ceph iSCSI gateway for VMWare][ceph-iscsi-vmware-upstream]
-documentation to use the new target. Use the (CHAP) username and password
-passed to the `create-target` action.
-
-When finished, under the `Devices` tab you should see the created target. To
-make more devices available to VMWare simply create more targets (use a
-different image name and optionally a different image size). You will need to
-`Rescan` and `Refresh` for the new devices to appear.
-
-> **Note**: At the time of writing, the redundant task of setting the
-  credentials via the ESX CLI is still a necessity. This will require you to
-  enable SSH under `Manage` > `Services` > `TSM-SSH` > `Actions` (Start).
-
-<!--
+Ceph can be used to back iSCSI targets for VMWare initiators. This is
+documented under [Ceph iSCSI][cdg-ceph-iscsi] in the [OpenStack Charms
+Deployment Guide][cdg].
 
 # Bugs
 
@@ -145,16 +97,14 @@ Please report bugs on [Launchpad][lp-bugs-charm-ceph-iscsi].
 
 For general charm questions refer to the [OpenStack Charm Guide][cg].
 
--->
-
 <!-- LINKS -->
 
 [ceph-mon-charm]: https://jaas.ai/ceph-mon
 [ceph-osd-charm]: https://jaas.ai/ceph-osd
 [cg]: https://docs.openstack.org/charm-guide
-[cg-preview-charms]: https://docs.openstack.org/charm-guide/latest/openstack-charms.html#tech-preview-charms-beta
 [cdg]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide
+[cg-preview-charms]: https://docs.openstack.org/charm-guide/latest/openstack-charms.html#tech-preview-charms-beta
+[cdg-ceph-iscsi]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-ceph-iscsi.html
 [juju-docs-actions]: https://jaas.ai/docs/actions
 [ceph-iscsi-upstream]: https://docs.ceph.com/docs/master/rbd/iscsi-overview/
-[ceph-iscsi-vmware-upstream]: https://docs.ceph.com/docs/master/rbd/iscsi-initiator-esx/
 [lp-bugs-charm-ceph-iscsi]: https://bugs.launchpad.net/charm-ceph-iscsi/+filebug
