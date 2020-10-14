@@ -4,10 +4,6 @@ The ceph-iscsi charm deploys the [Ceph iSCSI gateway
 service][ceph-iscsi-upstream]. The charm is intended to be used in conjunction
 with the [ceph-osd][ceph-osd-charm] and [ceph-mon][ceph-mon-charm] charms.
 
-> **Warning**: This charm is in a preview state and should not be used in
-  production. See the [OpenStack Charm Guide][cg-preview-charms] for more
-  information on preview charms.
-
 # Usage
 
 ## Configuration
