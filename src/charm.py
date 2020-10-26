@@ -41,6 +41,7 @@ import interface_tls_certificates.ca_client as ca_client
 
 import ops_openstack.adapters
 import ops_openstack.core
+import ops_openstack.plugins.classes
 import gwcli_client
 import cryptography.hazmat.primitives.serialization as serialization
 logger = logging.getLogger(__name__)
@@ -132,7 +133,8 @@ class CephISCSIGatewayAdapters(
     }
 
 
-class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
+class CephISCSIGatewayCharmBase(
+        ops_openstack.plugins.classes.BaseCephClientCharm):
     """Ceph iSCSI Base Charm."""
 
     _stored = StoredState()
@@ -173,6 +175,7 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
     def __init__(self, framework):
         """Setup adapters and observers."""
         super().__init__(framework)
+        super().register_status_check(self.custom_status_check)
         logging.info("Using %s class", self.release)
         self._stored.set_default(
             target_created=False,
@@ -210,6 +213,9 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
         self.framework.observe(
             self.on.config_changed,
             self.render_config)
+        self.framework.observe(
+            self.on.config_changed,
+            self.request_ceph_pool)
         self.framework.observe(
             self.on.upgrade_charm,
             self.render_config)
@@ -270,7 +276,21 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
 
     def request_ceph_pool(self, event):
         """Request pools from Ceph cluster."""
+        print("request_ceph_pool")
+        if not self.ceph_client.broker_available:
+            logging.info("Cannot request ceph setup at this time")
+            return
         logging.info("Requesting replicated pool")
+        try:
+            bcomp_kwargs = self.get_bluestore_compression()
+        except ValueError as e:
+            # The end user has most likely provided a invalid value for
+            # a configuration option. Just log the traceback here, the
+            # end user will be notified by assess_status() called at
+            # the end of the hook execution.
+            logging.warn('Caught ValueError, invalid value provided for '
+                         'configuration?: "{}"'.format(str(e)))
+            return
         self.ceph_client.create_replicated_pool(
             self.config_get('gateway-metadata-pool'))
         weight = self.config_get('ceph-pool-weight')
@@ -320,7 +340,8 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
                 name=self.data_pool_name,
                 erasure_profile=profile_name,
                 weight=weight,
-                allow_ec_overwrites=True
+                allow_ec_overwrites=True,
+                **bcomp_kwargs
             )
             self.ceph_client.create_replicated_pool(
                 name=self.metadata_pool_name,
@@ -330,7 +351,8 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
             self.ceph_client.create_replicated_pool(
                 name=self.data_pool_name,
                 replicas=replicas,
-                weight=weight)
+                weight=weight,
+                **bcomp_kwargs)
         logging.info("Requesting permissions")
         self.ceph_client.request_ceph_permissions(
             'ceph-iscsi',
@@ -425,14 +447,12 @@ class CephISCSIGatewayCharmBase(ops_openstack.core.OSBaseCharm):
     def custom_status_check(self):
         """Custom update status checks."""
         if ch_host.is_container():
-            self.unit.status = ops.model.BlockedStatus(
+            return ops.model.BlockedStatus(
                 'Charm cannot be deployed into a container')
-            return False
         if self.peers.unit_count not in self.ALLOWED_UNIT_COUNTS:
-            self.unit.status = ops.model.BlockedStatus(
+            return ops.model.BlockedStatus(
                 '{} is an invalid unit count'.format(self.peers.unit_count))
-            return False
-        return True
+        return ops.model.ActiveStatus()
 
     # Actions
 

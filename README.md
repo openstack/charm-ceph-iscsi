@@ -11,6 +11,19 @@ with the [ceph-osd][ceph-osd-charm] and [ceph-mon][ceph-mon-charm] charms.
 See file `config.yaml` for the full list of options, along with their
 descriptions and default values.
 
+## Ceph BlueStore compression
+
+This charm supports [BlueStore inline compression][ceph-bluestore-compression]
+for its associated Ceph storage pool(s). The feature is enabled by assigning a
+compression mode via the `bluestore-compression-mode` configuration option. The
+default behaviour is to disable compression.
+
+The efficiency of compression depends heavily on what type of data is stored
+in the pool and the charm provides a set of configuration options to fine tune
+the compression behaviour.
+
+**Note**: BlueStore compression is supported starting with Ceph Mimic.
+
 ## Deployment
 
 We are assuming a pre-existing Ceph cluster.

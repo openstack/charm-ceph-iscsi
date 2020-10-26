@@ -32,7 +32,7 @@ applications:
     charm: ../../ceph-iscsi.charm
     num_units: 2
     options:
-      gateway-metadata-pool: tmbtil
+      gateway-metadata-pool: iscsi-foo-metadata
       pool-type: erasure-coded
       ec-profile-k: 4
       ec-profile-m: 2

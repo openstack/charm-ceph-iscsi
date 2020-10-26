@@ -127,6 +127,13 @@ class CharmTestCase(unittest.TestCase):
             setattr(self, method, self.patch(method))
 
 
+class _CephISCSIGatewayCharmBase(charm.CephISCSIGatewayCharmBase):
+
+    @staticmethod
+    def get_bluestore_compression():
+        return {}
+
+
 class TestCephISCSIGatewayCharmBase(CharmTestCase):
 
     PATCHES = [
@@ -139,7 +146,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
     def setUp(self):
         super().setUp(charm, self.PATCHES)
         self.harness = Harness(
-            charm.CephISCSIGatewayCharmBase,
+            _CephISCSIGatewayCharmBase,
         )
         self.gwc = MagicMock()
         self.gwcli_client.GatewayClient.return_value = self.gwc

@@ -32,7 +32,7 @@ applications:
     charm: ../../ceph-iscsi.charm
     num_units: 2
     options:
-      gateway-metadata-pool: tmbtil
+      gateway-metadata-pool: iscsi-foo-metadata
     to:
       - '0'
       - '1'
