@@ -3,4 +3,4 @@ ops==1.0.0
 git+https://github.com/juju/charm-helpers.git@stable/20.10#egg=charmhelpers
 git+https://opendev.org/openstack/charm-ops-interface-ceph-client@stable/20.10#egg=interface_ceph_client
 git+https://opendev.org/openstack/charm-ops-openstack@stable/20.10#egg=ops_openstack
-git+https://opendev.org/openstack/charm-ops-interface-tls-certificates@stable/20.10#egg=ca_client
+git+https://opendev.org/openstack/charm-ops-interface-tls-certificates@stable/20.10#egg=interface_tls_certificates
