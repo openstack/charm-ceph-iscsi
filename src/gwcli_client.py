@@ -8,9 +8,23 @@ class GatewayClient():
 
     def run(self, path, cmd):
         _cmd = ['gwcli', path]
+        # NOTE(lourot): we don't print the full command here as it might
+        # contain secrets.
+        logging.info(' '.join(_cmd) + ' ...')
         _cmd.extend(cmd.split())
-        logging.info(_cmd)
-        subprocess.check_call(_cmd)
+
+        error_msg = None
+        try:
+            subprocess.check_output(_cmd, stderr=subprocess.PIPE)
+        except subprocess.CalledProcessError as e:
+            error_msg = 'gwcli failed with {}'.format(e.returncode)
+            logging.error(error_msg)
+            logging.error('stdout: {}'.format(e.stdout))
+            logging.error('stderr: {}'.format(e.stderr))
+
+        if error_msg:
+            # NOTE(lourot): we re-raise another free-of-secrets exception:
+            raise RuntimeError(error_msg)
 
     def create_target(self, iqn):
         self.run(

@@ -38,7 +38,7 @@ Then add a relation to the ceph-mon application:
 
 **Notes**:
 
-* Deploying four ceph-iscsi units is theoretical possible but it is not an
+* Deploying four ceph-iscsi units is theoretically possible but it is not an
   officially supported configuration.
 
 * The ceph-iscsi application cannot be containerised.
