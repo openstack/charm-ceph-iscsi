@@ -20,6 +20,8 @@ machines:
   '13':
   '14':
   '15':
+  '16':
+  '17':
 applications:
   ubuntu:
     charm: cs:ubuntu
@@ -30,12 +32,14 @@ applications:
       - '15'
   ceph-iscsi:
     charm: ../../ceph-iscsi.charm
-    num_units: 2
+    num_units: 4
     options:
       gateway-metadata-pool: iscsi-foo-metadata
     to:
       - '0'
       - '1'
+      - '16'
+      - '17'
   ceph-osd:
     charm: cs:~openstack-charmers-next/ceph-osd
     num_units: 6
