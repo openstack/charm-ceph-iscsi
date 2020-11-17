@@ -22,7 +22,7 @@ The efficiency of compression depends heavily on what type of data is stored
 in the pool and the charm provides a set of configuration options to fine tune
 the compression behaviour.
 
-**Note**: BlueStore compression is supported starting with Ceph Mimic.
+> **Note**: BlueStore compression is supported starting with Ceph Mimic.
 
 ## Deployment
 
@@ -30,7 +30,7 @@ We are assuming a pre-existing Ceph cluster.
 
 To provide multiple data paths to clients deploy exactly two ceph-iscsi units:
 
-    juju deploy -n 2 cs:~openstack-charmers-next/ceph-iscsi
+    juju deploy -n 2 ceph-iscsi
 
 Then add a relation to the ceph-mon application:
 
@@ -49,7 +49,9 @@ Then add a relation to the ceph-mon application:
 ## Actions
 
 This section covers Juju [actions][juju-docs-actions] supported by the charm.
-Actions allow specific operations to be performed on a per-unit basis.
+Actions allow specific operations to be performed on a per-unit basis. To
+display action descriptions run `juju actions ceph-iscsi`. If the charm is not
+deployed then see file `actions.yaml`.
 
 * `add-trusted-ip`
 * `create-target`
@@ -94,9 +96,9 @@ and is available from any ceph-iscsi unit:
     sudo gwcli
     /> help
 
-## VMWare integration
+## VMware integration
 
-Ceph can be used to back iSCSI targets for VMWare initiators. This is
+Ceph can be used to back iSCSI targets for VMware initiators. This is
 documented under [Ceph iSCSI][cdg-ceph-iscsi] in the [OpenStack Charms
 Deployment Guide][cdg].
 
