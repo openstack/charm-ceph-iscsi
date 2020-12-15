@@ -355,61 +355,17 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'ceph-mon/0',
             {'ingress-address': '10.0.0.3'})
         rel_data = self.harness.get_relation_data(rel_id, 'ceph-iscsi/0')
-        req_osd_settings = json.loads(rel_data['osd-settings'])
+        actual_req_osd_settings = json.loads(rel_data['osd-settings'])
         self.assertEqual(
-            req_osd_settings,
+            actual_req_osd_settings,
             {'osd heartbeat grace': 20, 'osd heartbeat interval': 5})
-        req_pool = json.loads(rel_data['broker_req'])
-        self.assertEqual(
-            req_pool['ops'],
-            [{
-                'compression-algorithm': None,
-                'compression-max-blob-size': None,
-                'compression-max-blob-size-hdd': None,
-                'compression-max-blob-size-ssd': None,
-                'compression-min-blob-size': None,
-                'compression-min-blob-size-hdd': None,
-                'compression-min-blob-size-ssd': None,
-                'compression-mode': None,
-                'compression-required-ratio': None,
-                'app-name': None,
-                'op': 'create-pool',
-                'name': 'iscsi-pool',
-                'replicas': 3,
-                'pg_num': None,
-                'weight': None,
-                'group': None,
-                'group-namespace': None,
-                'app-name': None,
-                'max-bytes': None,
-                'max-objects': None},
-             {
-                'compression-algorithm': None,
-                'compression-max-blob-size': None,
-                'compression-max-blob-size-hdd': None,
-                'compression-max-blob-size-ssd': None,
-                'compression-min-blob-size': None,
-                'compression-min-blob-size-hdd': None,
-                'compression-min-blob-size-ssd': None,
-                'compression-mode': None,
-                'compression-required-ratio': None,
-                'op': 'create-pool',
-                'name': 'ceph-iscsi',
-                'replicas': None,
-                'pg_num': None,
-                'weight': None,
-                'group': None,
-                'group-namespace': None,
-                'app-name': None,
-                'max-bytes': None,
-                'max-objects': None},
-             {
-                 'op': 'set-key-permissions',
-                 'permissions': [
-                     'osd', 'allow *',
-                     'mon', 'allow *',
-                     'mgr', 'allow r'],
-                 'client': 'ceph-iscsi'}])
+        actual_req_pool_ops = json.loads(rel_data['broker_req'])['ops']
+        self.assertEqual(actual_req_pool_ops[0]['op'], 'create-pool')
+        self.assertEqual(actual_req_pool_ops[0]['name'], 'iscsi-pool')
+        self.assertEqual(actual_req_pool_ops[1]['op'], 'create-pool')
+        self.assertEqual(actual_req_pool_ops[1]['name'], 'ceph-iscsi')
+        self.assertEqual(actual_req_pool_ops[2]['op'], 'set-key-permissions')
+        self.assertEqual(actual_req_pool_ops[2]['client'], 'ceph-iscsi')
 
     def test_on_pools_available(self):
         self.os.path.exists.return_value = False
