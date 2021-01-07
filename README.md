@@ -99,8 +99,8 @@ and is available from any ceph-iscsi unit:
 ## VMware integration
 
 Ceph can be used to back iSCSI targets for VMware initiators. This is
-documented under [Ceph iSCSI][cdg-ceph-iscsi] in the [OpenStack Charms
-Deployment Guide][cdg].
+documented under [VMware integration][ceph-docs-vmware-integration] in the
+[Charmed Ceph documentation][ceph-docs].
 
 # Bugs
 
@@ -114,8 +114,8 @@ For general charm questions refer to the [OpenStack Charm Guide][cg].
 [ceph-osd-charm]: https://jaas.ai/ceph-osd
 [cg]: https://docs.openstack.org/charm-guide
 [cdg]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide
-[cg-preview-charms]: https://docs.openstack.org/charm-guide/latest/openstack-charms.html#tech-preview-charms-beta
-[cdg-ceph-iscsi]: https://docs.openstack.org/project-deploy-guide/charm-deployment-guide/latest/app-ceph-iscsi.html
+[ceph-docs-vmware-integration]: https://ubuntu.com/ceph/docs/integration-vmware
+[ceph-docs]: https://ubuntu.com/ceph/docs
 [juju-docs-actions]: https://jaas.ai/docs/actions
 [ceph-iscsi-upstream]: https://docs.ceph.com/docs/master/rbd/iscsi-overview/
 [lp-bugs-charm-ceph-iscsi]: https://bugs.launchpad.net/charm-ceph-iscsi/+filebug
