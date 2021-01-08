@@ -147,9 +147,7 @@ class CephISCSIGatewayCharmBase(
     DEFAULT_TARGET = "iqn.2003-01.com.ubuntu.iscsi-gw:iscsi-igw"
     REQUIRED_RELATIONS = ['ceph-client', 'cluster']
 
-    # Two has been tested but four is probably fine too but needs
-    # validating
-    ALLOWED_UNIT_COUNTS = [2]
+    ALLOWED_UNIT_COUNTS = [2, 4]
 
     CEPH_CONFIG_PATH = Path('/etc/ceph')
     CEPH_ISCSI_CONFIG_PATH = CEPH_CONFIG_PATH / 'iscsi'
