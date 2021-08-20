@@ -139,8 +139,10 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
     PATCHES = [
         'ch_templating',
         'gwcli_client',
-        'subprocess',
         'os',
+        'secrets',
+        'socket',
+        'subprocess',
     ]
 
     def setUp(self):
@@ -148,6 +150,12 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.harness = Harness(
             _CephISCSIGatewayCharmBase,
         )
+        self.test_hostname = 'server1'
+        self.socket.gethostname.return_value = self.test_hostname
+        self.test_fqdn = self.test_hostname + '.foo'
+        self.socket.getfqdn.return_value = self.test_fqdn
+        self.secrets.choice.return_value = 'r'
+        self.test_admin_password = 'rrrrrrrr'
         self.gwc = MagicMock()
         self.gwcli_client.GatewayClient.return_value = self.gwc
 
@@ -182,7 +190,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.assertFalse(self.harness.charm._stored.target_created)
         self.assertFalse(self.harness.charm._stored.enable_tls)
 
-    def add_cluster_relation(self):
+    def add_base_cluster_relation(self):
         rel_id = self.harness.add_relation('cluster', 'ceph-iscsi')
         self.harness.add_relation_unit(
             rel_id,
@@ -197,10 +205,33 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             })
         return rel_id
 
+    def complete_cluster_relation(self, rel_id):
+        self.harness.update_relation_data(
+            rel_id,
+            'ceph-iscsi/1',
+            {
+                'ingress-address': '10.0.0.2',
+                'gateway_ready': 'True',
+                'gateway_fqdn': 'ceph-iscsi-1.example'
+            })
+
+    def add_admin_access_relation(self):
+        rel_id = self.harness.add_relation('admin-access', 'ceph-dashboard')
+        self.harness.add_relation_unit(
+            rel_id,
+            'ceph-dashboard/0')
+        self.harness.update_relation_data(
+            rel_id,
+            'ceph-dashboard/0',
+            {
+                'ingress-address': '10.0.0.2',
+            })
+        return rel_id
+
     @patch('socket.getfqdn')
     def test_on_create_target_action(self, _getfqdn):
         _getfqdn.return_value = 'ceph-iscsi-0.example'
-        self.add_cluster_relation()
+        self.add_base_cluster_relation()
         self.harness.begin()
         action_event = MagicMock()
         action_event.params = {
@@ -245,7 +276,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
     @patch('socket.getfqdn')
     def test_on_create_target_action_ec(self, _getfqdn):
         _getfqdn.return_value = 'ceph-iscsi-0.example'
-        self.add_cluster_relation()
+        self.add_base_cluster_relation()
         self.harness.begin()
         action_event = MagicMock()
         action_event.params = {
@@ -296,10 +327,8 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'iscsi-metapool',
             'disk1')
 
-    @patch.object(charm.secrets, 'choice')
-    def test_on_has_peers(self, _choice):
+    def test_on_has_peers(self):
         rel_id = self.harness.add_relation('cluster', 'ceph-iscsi')
-        _choice.return_value = 'r'
         self.harness.begin()
         self.harness.add_relation_unit(
             rel_id,
@@ -316,10 +345,10 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
                 'gateway_fqdn': 'ceph-iscsi-1.example'
             })
         self.assertEqual(
-            self.harness.charm.peers.admin_password, 'rrrrrrrr')
+            self.harness.charm.peers.admin_password, self.test_admin_password)
 
     def test_on_has_peers_not_leader(self):
-        self.add_cluster_relation()
+        self.add_base_cluster_relation()
         self.harness.begin()
         self.assertIsNone(
             self.harness.charm.peers.admin_password)
@@ -329,7 +358,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             self.harness.charm.peers.admin_password)
 
     def test_on_has_peers_existing_password(self):
-        rel_id = self.add_cluster_relation()
+        rel_id = self.add_base_cluster_relation()
         self.harness.update_relation_data(
             rel_id,
             'ceph-iscsi',
@@ -370,7 +399,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
     def test_on_pools_available(self):
         self.os.path.exists.return_value = False
         self.os.path.basename = os.path.basename
-        rel_id = self.add_cluster_relation()
+        rel_id = self.add_base_cluster_relation()
         self.harness.update_relation_data(
             rel_id,
             'ceph-iscsi',
@@ -392,9 +421,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         rel_data = self.harness.get_relation_data(rel_id, 'ceph-iscsi/0')
         self.assertEqual(rel_data['gateway_ready'], 'True')
 
-    @patch('socket.gethostname')
-    def test_on_certificates_relation_joined(self, _gethostname):
-        _gethostname.return_value = 'server1'
+    def test_on_certificates_relation_joined(self):
         rel_id = self.harness.add_relation('certificates', 'vault')
         self.harness.begin()
         self.harness.add_relation_unit(
@@ -407,19 +434,17 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         rel_data = self.harness.get_relation_data(rel_id, 'ceph-iscsi/0')
         self.assertEqual(
             rel_data['application_cert_requests'],
-            '{"server1": {"sans": ["10.0.0.10", "server1"]}}')
+            '{"server1.foo": {"sans": ["10.0.0.10", "server1"]}}')
 
-    @patch('socket.gethostname')
-    def test_on_certificates_relation_changed(self, _gethostname):
+    def test_on_certificates_relation_changed(self):
         mock_TLS_CERT_PATH = MagicMock()
         mock_TLS_CA_CERT_PATH = MagicMock()
         mock_TLS_KEY_PATH = MagicMock()
         mock_KEY_AND_CERT_PATH = MagicMock()
         mock_TLS_PUB_KEY_PATH = MagicMock()
-        _gethostname.return_value = 'server1'
         self.subprocess.check_output.return_value = b'pubkey'
         rel_id = self.harness.add_relation('certificates', 'vault')
-        self.add_cluster_relation()
+        self.add_base_cluster_relation()
         self.harness.begin()
         self.harness.charm.TLS_CERT_PATH = mock_TLS_CERT_PATH
         self.harness.charm.TLS_CA_CERT_PATH = mock_TLS_CA_CERT_PATH
@@ -460,3 +485,26 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.assertIsInstance(
             self.harness.charm.unit.status,
             BlockedStatus)
+
+    def test_publish_admin_access_info(self):
+        cluster_rel_id = self.add_base_cluster_relation()
+        admin_access_rel_id = self.add_admin_access_relation()
+        self.harness.begin()
+        self.harness.set_leader()
+        self.complete_cluster_relation(cluster_rel_id)
+        self.assertEqual(
+            self.harness.get_relation_data(
+                admin_access_rel_id,
+                'ceph-iscsi/0'),
+            {
+                'host': '10.0.0.10',
+                'name': self.test_fqdn,
+                'port': '5000',
+                'scheme': 'http'})
+        self.assertEqual(
+            self.harness.get_relation_data(
+                admin_access_rel_id,
+                'ceph-iscsi'),
+            {
+                'password': self.test_admin_password,
+                'username': 'admin'})

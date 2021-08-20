@@ -17,12 +17,12 @@
 """Charm for deploying and maintaining the Ceph iSCSI service."""
 
 import copy
-import socket
 import logging
 import os
 import subprocess
 import sys
 import string
+import socket
 import secrets
 from pathlib import Path
 
@@ -36,6 +36,7 @@ import ops.model
 import charmhelpers.core.host as ch_host
 import charmhelpers.core.templating as ch_templating
 import interface_ceph_client.ceph_client as ceph_client
+import interface_ceph_iscsi_admin_access.admin_access as admin_access
 import interface_ceph_iscsi_peer
 import interface_tls_certificates.ca_client as ca_client
 
@@ -102,7 +103,20 @@ class GatewayClientPeerAdapter(
         """
         ips = copy.deepcopy(self.allowed_ips)
         ips.extend(self.relation.peer_addresses)
-        return ' '.join(sorted(ips))
+        return ','.join(sorted(ips))
+
+
+class AdminAccessAdapter(
+        ops_openstack.adapters.OpenStackOperRelationAdapter):
+
+    @property
+    def trusted_ips(self):
+        """List of IP addresses permitted to use API.
+
+        :returns: Ceph iSCSI clients
+        :rtype: str
+        """
+        return ','.join(sorted(self.relation.client_addresses))
 
 
 class TLSCertificatesAdapter(
@@ -130,6 +144,7 @@ class CephISCSIGatewayAdapters(
         'ceph-client': CephClientAdapter,
         'cluster': GatewayClientPeerAdapter,
         'certificates': TLSCertificatesAdapter,
+        'admin-access': AdminAccessAdapter,
     }
 
 
@@ -184,12 +199,19 @@ class CephISCSIGatewayCharmBase(
         self.peers = interface_ceph_iscsi_peer.CephISCSIGatewayPeers(
             self,
             'cluster')
+        self.admin_access = \
+            admin_access.CephISCSIAdminAccessProvides(
+                self,
+                'admin-access')
         self.ca_client = ca_client.CAClient(
             self,
             'certificates')
         self.adapters = CephISCSIGatewayAdapters(
-            (self.ceph_client, self.peers, self.ca_client),
+            (self.ceph_client, self.peers, self.ca_client, self.admin_access),
             self)
+        self.framework.observe(
+            self.admin_access.on.admin_access_request,
+            self.publish_admin_access_info)
         self.framework.observe(
             self.ceph_client.on.broker_available,
             self.request_ceph_pool)
@@ -240,6 +262,7 @@ class CephISCSIGatewayCharmBase(
             alphabet = string.ascii_letters + string.digits
             password = ''.join(secrets.choice(alphabet) for i in range(8))
             self.peers.set_admin_password(password)
+        self.publish_admin_access_info(event)
 
     def config_get(self, key):
         """Retrieve config option.
@@ -274,7 +297,6 @@ class CephISCSIGatewayCharmBase(
 
     def request_ceph_pool(self, event):
         """Request pools from Ceph cluster."""
-        print("request_ceph_pool")
         if not self.ceph_client.broker_available:
             logging.info("Cannot request ceph setup at this time")
             return
@@ -440,7 +462,25 @@ class CephISCSIGatewayCharmBase(
                 encoding=serialization.Encoding.PEM))
         subprocess.check_call(['update-ca-certificates'])
         self._stored.enable_tls = True
+        # Endpoint has switch to TLS, need to inform users.
+        self.publish_admin_access_info(event)
         self.render_config(event)
+
+    def publish_admin_access_info(self, event):
+        """Publish creds and endpoint to related charms"""
+        if not self.peers.admin_password:
+            logging.info("Defering setup")
+            event.defer()
+            return
+        if self._stored.enable_tls:
+            scheme = 'https'
+        else:
+            scheme = 'http'
+        self.admin_access.publish_gateway(
+            socket.getfqdn(),
+            'admin',
+            self.peers.admin_password,
+            scheme)
 
     def custom_status_check(self):
         """Custom update status checks."""
