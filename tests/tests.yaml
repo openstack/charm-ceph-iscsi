@@ -13,7 +13,7 @@ tests:
 target_deploy_status:
   ubuntu:
     workload-status: active
-    workload-status-message: ''
+    workload-status-message-prefix: ''
   vault:
     workload-status: blocked
-    workload-status-message: Vault needs to be initialized
+    workload-status-message-prefix: Vault needs to be initialized

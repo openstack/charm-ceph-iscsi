@@ -1,6 +1,7 @@
 - project:
     templates:
-      - charm-unit-jobs
+      - charm-unit-jobs-py38
+      - charm-unit-jobs-py39
     check:
       jobs:
       - ceph-iscsi-focal-octopus
@@ -13,11 +14,10 @@
     name: ceph-iscsi-focal-octopus
     parent: func-target
     dependencies:
+      - charm-build
       - osci-lint
-      - tox-py35
-      - tox-py36
-      - tox-py37
       - tox-py38
+      - tox-py39
     vars:
       tox_extra_args: focal
 - job:

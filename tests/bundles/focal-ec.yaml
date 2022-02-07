@@ -36,11 +36,13 @@ applications:
       pool-type: erasure-coded
       ec-profile-k: 4
       ec-profile-m: 2
+      # Use proposed until fix for #1883112 is backported
+      source: distro-proposed
     to:
       - '0'
       - '1'
   ceph-osd:
-    charm: cs:~openstack-charmers-next/ceph-osd
+    charm: ch:ceph-osd
     num_units: 6
     storage:
       osd-devices: 'cinder,10G'
@@ -53,8 +55,9 @@ applications:
       - '11'
       - '12'
       - '13'
+    channel: latest/edge
   ceph-mon:
-    charm: cs:~openstack-charmers-next/ceph-mon
+    charm: ch:ceph-mon
     num_units: 3
     options:
       monitor-count: '3'
@@ -62,20 +65,24 @@ applications:
       - '3'
       - '4'
       - '5'
+    channel: latest/edge
   vault:
     num_units: 1
-    charm: cs:~openstack-charmers-next/vault
+    charm: ch:vault
     to:
       - '6'
+    channel: latest/edge
   mysql-innodb-cluster:
-    charm: cs:~openstack-charmers-next/mysql-innodb-cluster
+    charm: ch:mysql-innodb-cluster
     num_units: 3
     to:
       - '8'
       - '9'
       - '10'
+    channel: latest/edge
   vault-mysql-router:
-    charm: cs:~openstack-charmers-next/mysql-router
+    charm: ch:mysql-router
+    channel: latest/edge
 relations:
   - - 'ceph-mon:client'
     - 'ceph-iscsi:ceph-client'
