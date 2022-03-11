@@ -195,14 +195,6 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.harness.add_relation_unit(
             rel_id,
             'ceph-iscsi/1')
-        self.harness.update_relation_data(
-            rel_id,
-            'ceph-iscsi/1',
-            {
-                'ingress-address': '10.0.0.2',
-                'gateway_ready': 'True',
-                'gateway_fqdn': 'ceph-iscsi-1.example'
-            })
         return rel_id
 
     def complete_cluster_relation(self, rel_id):
@@ -231,7 +223,8 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
     @patch('socket.getfqdn')
     def test_on_create_target_action(self, _getfqdn):
         _getfqdn.return_value = 'ceph-iscsi-0.example'
-        self.add_base_cluster_relation()
+        cluster_rel_id = self.add_base_cluster_relation()
+        self.complete_cluster_relation(cluster_rel_id)
         self.harness.begin()
         action_event = MagicMock()
         action_event.params = {
@@ -276,7 +269,8 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
     @patch('socket.getfqdn')
     def test_on_create_target_action_ec(self, _getfqdn):
         _getfqdn.return_value = 'ceph-iscsi-0.example'
-        self.add_base_cluster_relation()
+        cluster_rel_id = self.add_base_cluster_relation()
+        self.complete_cluster_relation(cluster_rel_id)
         self.harness.begin()
         action_event = MagicMock()
         action_event.params = {

@@ -11,9 +11,6 @@ tags:
   - misc
 series:
   - focal
-  - groovy
-  - hirsute
-  - impish
 subordinate: false
 min-juju-version: 2.7.6
 extra-bindings:

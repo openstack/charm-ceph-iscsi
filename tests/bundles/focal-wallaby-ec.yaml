@@ -1,4 +1,8 @@
 local_overlay_enabled: False
+
+variables:
+  openstack-origin: &openstack-origin cloud:focal-wallaby
+
 series: focal
 machines:
   '0':
@@ -20,8 +24,6 @@ machines:
   '13':
   '14':
   '15':
-  '16':
-  '17':
 applications:
   ubuntu:
     charm: cs:ubuntu
@@ -32,14 +34,15 @@ applications:
       - '15'
   ceph-iscsi:
     charm: ../../ceph-iscsi.charm
-    num_units: 4
+    num_units: 2
     options:
       gateway-metadata-pool: iscsi-foo-metadata
+      pool-type: erasure-coded
+      ec-profile-k: 4
+      ec-profile-m: 2
     to:
       - '6'
       - '7'
-      - '16'
-      - '17'
   ceph-osd:
     charm: ch:ceph-osd
     num_units: 6
@@ -47,6 +50,7 @@ applications:
       osd-devices: 'cinder,10G'
     options:
       osd-devices: '/dev/test-non-existent'
+      source: *openstack-origin
     to:
       - '0'
       - '1'
@@ -60,6 +64,7 @@ applications:
     num_units: 3
     options:
       monitor-count: '3'
+      source: *openstack-origin
     to:
       - '3'
       - '4'
