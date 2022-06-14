@@ -1,29 +1,47 @@
 - project:
     templates:
-      - charm-unit-jobs-py38
-      - charm-unit-jobs-py39
+      - charm-unit-jobs-py310
     check:
       jobs:
-      - ceph-iscsi-focal-octopus
-      - ceph-iscsi-focal-octopus-ec
+      - ceph-iscsi-jammy-quincy
+      - ceph-iscsi-jammy-quincy-ec
+      - ceph-iscsi-kinetic-quincy:
+          voting: false
+      - ceph-iscsi-kinetic-quincy-ec:
+          voting: false
     vars:
       needs_charm_build: true
       charm_build_name: ceph-iscsi
       build_type: charmcraft
+      charmcraft_channel: 2.0/stable
 - job:
-    name: ceph-iscsi-focal-octopus
+    name: ceph-iscsi-jammy-quincy
     parent: func-target
     dependencies:
       - charm-build
       - osci-lint
-      - tox-py38
-      - tox-py39
+      - name: tox-py310
+        soft: true
     vars:
-      tox_extra_args: focal
+      tox_extra_args: jammy
 - job:
-    name: ceph-iscsi-focal-octopus-ec
+    name: ceph-iscsi-jammy-quincy-ec
     parent: func-target
-    dependencies: &smoke-jobs
-      - ceph-iscsi-focal-octopus
+    dependencies:
+      - ceph-iscsi-jammy-quincy
     vars:
-      tox_extra_args: focal-ec
+      tox_extra_args: jammy-ec
+- job:
+    name: ceph-iscsi-kinetic-quincy
+    parent: func-target
+    dependencies:
+      - ceph-iscsi-jammy-quincy
+    vars:
+      tox_extra_args: kinetic
+- job:
+    name: ceph-iscsi-kinetic-quincy-ec
+    parent: func-target
+    dependencies:
+      - ceph-iscsi-jammy-quincy
+    vars:
+      tox_extra_args: kinetic-ec

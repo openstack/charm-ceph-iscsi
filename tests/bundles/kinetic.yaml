@@ -1,5 +1,5 @@
 local_overlay_enabled: False
-series: focal
+series: kinetic
 machines:
   '0':
   '1':
@@ -35,8 +35,6 @@ applications:
     num_units: 4
     options:
       gateway-metadata-pool: iscsi-foo-metadata
-      # Use proposed until fix for #1883112 is backported
-      source: distro-proposed
     to:
       - '0'
       - '1'

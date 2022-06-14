@@ -173,8 +173,9 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
                     'egress-subnets': ['10.0.0.0/24']}
                 return network_data
 
+        config_ = self.harness._get_config(charm_config=None)
         self.harness._backend = _TestingOPSModelBackend(
-            self.harness._unit_name, self.harness._meta)
+            self.harness._unit_name, self.harness._meta, config_)
         self.harness._model = model.Model(
             self.harness._meta,
             self.harness._backend)
@@ -398,7 +399,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             rel_id,
             'ceph-iscsi',
             {'admin_password': 'existing password',
-             'gateway_ready': False})
+             'gateway_ready': 'False'})
         self.harness.begin()
         self.harness.charm.ceph_client._stored.pools_available = True
         with patch.object(Path, 'mkdir') as mock_mkdir:

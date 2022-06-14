@@ -1,5 +1,5 @@
 local_overlay_enabled: False
-series: focal
+series: kinetic
 machines:
   '0':
   '1':
@@ -36,8 +36,6 @@ applications:
       pool-type: erasure-coded
       ec-profile-k: 4
       ec-profile-m: 2
-      # Use proposed until fix for #1883112 is backported
-      source: distro-proposed
     to:
       - '0'
       - '1'
