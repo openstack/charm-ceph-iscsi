@@ -24,7 +24,7 @@ machines:
   '17':
 applications:
   ubuntu:
-    charm: cs:ubuntu
+    charm: ch:ubuntu
     num_units: 3
     to:
       - '7'
@@ -36,12 +36,12 @@ applications:
     options:
       gateway-metadata-pool: iscsi-foo-metadata
     to:
-      - '0'
-      - '1'
+      - '6'
+      - '7'
       - '16'
       - '17'
   ceph-osd:
-    charm: cs:~openstack-charmers/ceph-osd
+    charm: ch:ceph-osd
     num_units: 6
     storage:
       osd-devices: 'cinder,10G'
@@ -54,8 +54,9 @@ applications:
       - '11'
       - '12'
       - '13'
+    channel: octopus/edge
   ceph-mon:
-    charm: cs:~openstack-charmers/ceph-mon
+    charm: ch:ceph-mon
     num_units: 3
     options:
       monitor-count: '3'
@@ -63,20 +64,24 @@ applications:
       - '3'
       - '4'
       - '5'
+    channel: octopus/edge
   vault:
     num_units: 1
-    charm: cs:~openstack-charmers/vault
+    charm: ch:vault
     to:
       - '6'
+    channel: 1.7/edge
   mysql-innodb-cluster:
-    charm: cs:~openstack-charmers/mysql-innodb-cluster
+    charm: ch:mysql-innodb-cluster
     num_units: 3
     to:
       - '8'
       - '9'
       - '10'
+    channel: 8.0/edge
   vault-mysql-router:
-    charm: cs:~openstack-charmers/mysql-router
+    charm: ch:mysql-router
+    channel: 8.0/edge
 relations:
   - - 'ceph-mon:client'
     - 'ceph-iscsi:ceph-client'

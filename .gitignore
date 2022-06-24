@@ -6,3 +6,4 @@ lib/*
 !lib/README.txt
 build
 ceph-iscsi.charm
+*.charm
