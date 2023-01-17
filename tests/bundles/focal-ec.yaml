@@ -20,6 +20,8 @@ machines:
   '13':
   '14':
   '15':
+  '16':
+  '17':
 applications:
   ubuntu:
     charm: ch:ubuntu
@@ -30,15 +32,17 @@ applications:
       - '15'
   ceph-iscsi:
     charm: ../../ceph-iscsi.charm
-    num_units: 2
+    num_units: 4
     options:
       gateway-metadata-pool: iscsi-foo-metadata
       pool-type: erasure-coded
-      ec-profile-k: 4
+      ec-profile-k: 2
       ec-profile-m: 2
     to:
       - '6'
       - '7'
+      - '16'
+      - '17'
   ceph-osd:
     charm: ch:ceph-osd
     num_units: 6
