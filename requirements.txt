@@ -1,7 +1,7 @@
 # requirements
+ops <= 1.6.0
 git+https://github.com/juju/charm-helpers@stable/wallaby#egg=charmhelpers
-git+https://github.com/canonical/operator.git#egg=ops
-git+https://opendev.org/openstack/charm-ops-interface-ceph-client#egg=interface_ceph_client
-git+https://opendev.org/openstack/charm-ops-openstack#egg=ops_openstack
-git+https://opendev.org/openstack/charm-ops-interface-tls-certificates#egg=interface_tls_certificates
-git+https://github.com/openstack-charmers/ops-interface-ceph-iscsi-admin-access#egg=interface_ceph_iscsi_admin_access
+git+https://opendev.org/openstack/charm-ops-interface-ceph-client@d4d0cefc5e92edd28cdbf5d00e190d4498896418#egg=interface_ceph_client
+git+https://opendev.org/openstack/charm-ops-openstack@c4cdbf9d774904f360478b5c7b7c362fd02bd187#egg=ops_openstack
+git+https://opendev.org/openstack/charm-ops-interface-tls-certificates@f720af03a1acb640ab1fed86fd30ff9aafda1ea4#egg=interface_tls_certificates
+git+https://github.com/openstack-charmers/ops-interface-ceph-iscsi-admin-access@e894183770c3d3f42721a2717a632c3af270d7ae#egg=interface_ceph_iscsi_admin_access
