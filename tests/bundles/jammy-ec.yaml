@@ -22,7 +22,7 @@ machines:
   '15':
 applications:
   ubuntu:
-    charm: cs:ubuntu
+    charm: ch:ubuntu
     num_units: 3
     to:
       - '7'
@@ -37,8 +37,8 @@ applications:
       ec-profile-k: 4
       ec-profile-m: 2
     to:
-      - '0'
-      - '1'
+      - '6'
+      - '7'
   ceph-osd:
     charm: ch:ceph-osd
     num_units: 6
@@ -69,7 +69,7 @@ applications:
     charm: ch:vault
     to:
       - '6'
-    channel: latest/edge
+    channel: 1.7/edge
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
     num_units: 3
@@ -77,10 +77,10 @@ applications:
       - '8'
       - '9'
       - '10'
-    channel: latest/edge
+    channel: 8.0/edge
   vault-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
 relations:
   - - 'ceph-mon:client'
     - 'ceph-iscsi:ceph-client'
