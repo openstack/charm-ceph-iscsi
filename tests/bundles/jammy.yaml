@@ -36,8 +36,8 @@ applications:
     options:
       gateway-metadata-pool: iscsi-foo-metadata
     to:
-      - '0'
-      - '1'
+      - '6'
+      - '7'
       - '16'
       - '17'
   ceph-osd:
@@ -54,7 +54,7 @@ applications:
       - '11'
       - '12'
       - '13'
-    channel: latest/edge
+    channel: quincy/edge
   ceph-mon:
     charm: ch:ceph-mon
     num_units: 3
@@ -64,13 +64,13 @@ applications:
       - '3'
       - '4'
       - '5'
-    channel: latest/edge
+    channel: quincy/edge
   vault:
     num_units: 1
     charm: ch:vault
     to:
       - '6'
-    channel: latest/edge
+    channel: 1.7/edge
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
     num_units: 3
@@ -78,10 +78,10 @@ applications:
       - '8'
       - '9'
       - '10'
-    channel: latest/edge
+    channel: 8.0/edge
   vault-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
 relations:
   - - 'ceph-mon:client'
     - 'ceph-iscsi:ceph-client'
