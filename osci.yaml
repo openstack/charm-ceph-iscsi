@@ -23,25 +23,25 @@
       - name: tox-py310
         soft: true
     vars:
-      tox_extra_args: jammy
+      tox_extra_args: -- jammy
 - job:
     name: ceph-iscsi-jammy-quincy-ec
     parent: func-target
     dependencies:
       - ceph-iscsi-jammy-quincy
     vars:
-      tox_extra_args: jammy-ec
+      tox_extra_args: -- jammy-ec
 - job:
     name: ceph-iscsi-kinetic-quincy
     parent: func-target
     dependencies:
       - ceph-iscsi-jammy-quincy
     vars:
-      tox_extra_args: kinetic
+      tox_extra_args: -- kinetic
 - job:
     name: ceph-iscsi-kinetic-quincy-ec
     parent: func-target
     dependencies:
       - ceph-iscsi-jammy-quincy
     vars:
-      tox_extra_args: kinetic-ec
+      tox_extra_args: -- kinetic-ec
