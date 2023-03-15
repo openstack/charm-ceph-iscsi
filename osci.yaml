@@ -9,6 +9,10 @@
           voting: false
       - ceph-iscsi-kinetic-quincy-ec:
           voting: false
+      - ceph-iscsi-lunar-quincy:
+          voting: false
+      - ceph-iscsi-lunar-quincy-ec:
+          voting: false
     vars:
       needs_charm_build: true
       charm_build_name: ceph-iscsi
@@ -45,3 +49,20 @@
       - ceph-iscsi-jammy-quincy
     vars:
       tox_extra_args: kinetic-ec
+
+- job:
+    name: ceph-iscsi-lunar-quincy
+    parent: func-target
+    voting: false
+    dependencies:
+      - ceph-iscsi-jammy-quincy
+    vars:
+      tox_extra_args: lunar
+- job:
+    name: ceph-iscsi-lunar-quincy-ec
+    parent: func-target
+    voting: false
+    dependencies:
+      - ceph-iscsi-jammy-quincy
+    vars:
+      tox_extra_args: lunar-ec

@@ -11,6 +11,8 @@ tags:
   - misc
 series:
 - jammy
+- kinetic
+- lunar
 subordinate: false
 min-juju-version: 2.7.6
 extra-bindings:
