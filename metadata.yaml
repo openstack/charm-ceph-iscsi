@@ -5,6 +5,7 @@ description: |
   The iSCSI gateway is integrating Ceph Storage with the iSCSI standard to
   provide a Highly Available (HA) iSCSI target that exports RADOS Block Device
   (RBD) images as SCSI disks.
+docs: https://discourse.charmhub.io/t/ceph-iscsi-docs-index/11222
 tags:
   - openstack
   - storage
