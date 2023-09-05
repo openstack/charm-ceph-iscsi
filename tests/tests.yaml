@@ -1,5 +1,7 @@
 charm_name: ceph-iscsi
 gate_bundles:
+  - focal-ec
+  - focal
   - jammy-ec
   - jammy
 smoke_bundles:

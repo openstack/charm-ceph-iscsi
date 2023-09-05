@@ -11,6 +11,7 @@ tags:
   - storage
   - misc
 series:
+- focal
 - jammy
 - kinetic
 - lunar
