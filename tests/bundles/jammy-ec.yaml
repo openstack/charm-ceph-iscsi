@@ -69,7 +69,7 @@ applications:
     charm: ch:vault
     to:
       - '6'
-    channel: latest/edge
+    channel: 1.8/stable
   mysql-innodb-cluster:
     charm: ch:mysql-innodb-cluster
     num_units: 3
@@ -77,10 +77,11 @@ applications:
       - '8'
       - '9'
       - '10'
-    channel: latest/edge
+    channel: 8.0/edge
   vault-mysql-router:
     charm: ch:mysql-router
-    channel: latest/edge
+    channel: 8.0/edge
+
 relations:
   - - 'ceph-mon:client'
     - 'ceph-iscsi:ceph-client'

@@ -7,10 +7,6 @@
       - ceph-iscsi-focal-quincy-ec
       - ceph-iscsi-jammy-quincy
       - ceph-iscsi-jammy-quincy-ec
-      - ceph-iscsi-kinetic-quincy:
-          voting: false
-      - ceph-iscsi-kinetic-quincy-ec:
-          voting: false
       - ceph-iscsi-lunar-quincy:
           voting: false
       - ceph-iscsi-lunar-quincy-ec:
@@ -52,20 +48,6 @@
       - ceph-iscsi-jammy-quincy
     vars:
       tox_extra_args: -- jammy-ec
-- job:
-    name: ceph-iscsi-kinetic-quincy
-    parent: func-target
-    dependencies:
-      - ceph-iscsi-jammy-quincy
-    vars:
-      tox_extra_args: -- kinetic
-- job:
-    name: ceph-iscsi-kinetic-quincy-ec
-    parent: func-target
-    dependencies:
-      - ceph-iscsi-jammy-quincy
-    vars:
-      tox_extra_args: -- kinetic-ec
 
 - job:
     name: ceph-iscsi-lunar-quincy

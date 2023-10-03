@@ -9,8 +9,6 @@ smoke_bundles:
 dev_bundles:
   - jammy-ec
   - jammy
-  - kinetic-ec
-  - kinetic
 configure:
   - zaza.openstack.charm_tests.vault.setup.auto_initialize_no_validation
   - zaza.openstack.charm_tests.ceph.iscsi.setup.basic_guest_setup
