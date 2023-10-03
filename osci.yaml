@@ -7,6 +7,8 @@
       - ceph-iscsi-focal-quincy-ec
       - ceph-iscsi-jammy-quincy
       - ceph-iscsi-jammy-quincy-ec
+      - ceph-iscsi-jammy-reef
+      - ceph-iscsi-jammy-reef-ec
       - ceph-iscsi-lunar-quincy:
           voting: false
       - ceph-iscsi-lunar-quincy-ec:
@@ -48,6 +50,24 @@
       - ceph-iscsi-jammy-quincy
     vars:
       tox_extra_args: -- jammy-ec
+
+- job:
+    name: ceph-iscsi-jammy-reef
+    parent: func-target
+    dependencies:
+      - charm-build
+      - osci-lint
+      - name: tox-py310
+        soft: true
+    vars:
+      tox_extra_args: -- jammy-reef
+- job:
+    name: ceph-iscsi-jammy-reef-ec
+    parent: func-target
+    dependencies:
+      - ceph-iscsi-jammy-reef
+    vars:
+      tox_extra_args: -- jammy-reef-ec
 
 - job:
     name: ceph-iscsi-lunar-quincy

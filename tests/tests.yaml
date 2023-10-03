@@ -4,6 +4,8 @@ gate_bundles:
   - focal
   - jammy-ec
   - jammy
+  - jammy-reef
+  - jammy-reef-ef
 smoke_bundles:
   - jammy
 dev_bundles:
