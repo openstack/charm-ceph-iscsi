@@ -312,7 +312,8 @@ class CephISCSIGatewayCharmBase(
                          'configuration?: "{}"'.format(str(e)))
             return
         self.ceph_client.create_replicated_pool(
-            self.config_get('gateway-metadata-pool'))
+            self.config_get('gateway-metadata-pool'),
+            app_name='rbd')
         weight = self.config_get('ceph-pool-weight')
         replicas = self.config_get('ceph-osd-replication-count')
         if self.config_get('pool-type') == 'erasure-coded':
@@ -361,10 +362,12 @@ class CephISCSIGatewayCharmBase(
                 erasure_profile=profile_name,
                 weight=weight,
                 allow_ec_overwrites=True,
+                app_name='rbd',
                 **bcomp_kwargs
             )
             self.ceph_client.create_replicated_pool(
                 name=self.metadata_pool_name,
+                app_name='rbd',
                 weight=metadata_weight
             )
         else:
@@ -372,6 +375,7 @@ class CephISCSIGatewayCharmBase(
                 name=self.data_pool_name,
                 replicas=replicas,
                 weight=weight,
+                app_name='rbd',
                 **bcomp_kwargs)
         logging.info("Requesting permissions")
         self.ceph_client.request_ceph_permissions(
