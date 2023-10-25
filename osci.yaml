@@ -15,7 +15,7 @@
       needs_charm_build: true
       charm_build_name: ceph-iscsi
       build_type: charmcraft
-      charmcraft_channel: 2.0/stable
+      charmcraft_channel: 2.2/stable
 - job:
     name: ceph-iscsi-focal-quincy
     parent: func-target
