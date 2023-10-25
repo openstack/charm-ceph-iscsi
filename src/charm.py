@@ -521,10 +521,37 @@ class CephISCSIGatewayCharmBase(
             rbd_pool_name = self.data_pool_name
         return rbd_pool_name, ec_rbd_metadata_pool
 
+    def _validate_str(self, value, allowed, min_len, max_len, typ):
+        if any(s for s in value if s not in allowed):
+            raise ValueError('%s can only contain: %s' % (typ, allowed))
+        elif len(value) < min_len or len(value) > max_len:
+            raise ValueError('%s must be between %d and %d characters long' %
+                             (typ, min_len, max_len))
+
+    def _validate_username(self, value):
+        self._validate_str(value, string.ascii_letters + string.digits +
+                           '.@-_:', 8, 64, 'username')
+
+    def _validate_password(self, value):
+        self._validate_str(value, string.ascii_letters + string.digits +
+                           '@-_/', 12, 16, 'password')
+
     def on_create_target_action(self, event):
         """Create an iSCSI target."""
         gw_client = gwcli_client.GatewayClient()
         target = event.params.get('iqn', self.DEFAULT_TARGET)
+        username = event.params['client-username']
+        passwd = event.params['client-password']
+        try:
+            self._validate_username(username)
+            self._validate_password(passwd)
+        except ValueError as exc:
+            logging.error(str(exc))
+            fail_str = 'invalid username or password: %s' % str(exc)
+            event.fail(fail_str)
+            event.set_results({'err': fail_str})
+            return
+
         gateway_units = event.params.get(
             'gateway-units',
             [u for u in self.peers.ready_peer_details.keys()])
@@ -567,8 +594,8 @@ class CephISCSIGatewayCharmBase(
         gw_client.add_client_auth(
             target,
             event.params['client-initiatorname'],
-            event.params['client-username'],
-            event.params['client-password'])
+            username,
+            passwd)
         gw_client.add_disk_to_client(
             target,
             event.params['client-initiatorname'],
