@@ -237,7 +237,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'image-size': '5G',
             'client-initiatorname': 'client-initiator',
             'client-username': 'myusername',
-            'client-password': 'mypassword'}
+            'client-password': 'mypassword123'}
         self.harness.charm.on_create_target_action(action_event)
         self.gwc.add_gateway_to_target.assert_has_calls([
             call(
@@ -260,7 +260,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'iqn.mock.iscsi-gw:iscsi-igw',
             'client-initiator',
             'myusername',
-            'mypassword')
+            'mypassword123')
         self.gwc.add_disk_to_client.assert_called_once_with(
             'iqn.mock.iscsi-gw:iscsi-igw',
             'client-initiator',
@@ -283,7 +283,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'image-size': '5G',
             'client-initiatorname': 'client-initiator',
             'client-username': 'myusername',
-            'client-password': 'mypassword'}
+            'client-password': 'mypassword123'}
         self.harness.charm.on_create_target_action(action_event)
         self.subprocess.check_call.assert_called_once_with(
             [
@@ -315,7 +315,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
             'iqn.mock.iscsi-gw:iscsi-igw',
             'client-initiator',
             'myusername',
-            'mypassword')
+            'mypassword123')
         self.gwc.add_disk_to_client.assert_called_once_with(
             'iqn.mock.iscsi-gw:iscsi-igw',
             'client-initiator',
