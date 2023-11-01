@@ -288,7 +288,7 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.subprocess.check_call.assert_called_once_with(
             [
                 'rbd',
-                '--user', 'ceph-iscsi',
+                '--id', 'ceph-iscsi',
                 '--conf', '/etc/ceph/iscsi/ceph.conf',
                 'create',
                 '--size', '5G',

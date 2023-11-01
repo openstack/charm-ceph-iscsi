@@ -42,11 +42,9 @@ create-target:
       description: "Image name "
     rbd-pool-name:
       type: string
-      default: iscsi
       description: "Name of ceph pool to use to back target "
     ec-rbd-metadata-pool:
       type: string
-      default: iscsi
       description: "Name of the metadata pool to use with rbd-pool-name if rbd-pool-name is erasure coded."
     client-initiatorname:
       type: string
