@@ -313,7 +313,7 @@ class CephISCSIGatewayCharmBase(
             return
         self.ceph_client.create_replicated_pool(
             self.config_get('gateway-metadata-pool'),
-            app_name='rbd')
+            app_name='rados')
         weight = self.config_get('ceph-pool-weight')
         replicas = self.config_get('ceph-osd-replication-count')
         if self.config_get('pool-type') == 'erasure-coded':
@@ -566,7 +566,7 @@ class CephISCSIGatewayCharmBase(
             # as the gwcli does not currently handle the creation.
             cmd = [
                 'rbd',
-                '--user', 'ceph-iscsi',
+                '--id', 'ceph-iscsi',
                 '--conf', str(self.CEPH_CONF),
                 'create',
                 '--size', event.params['image-size'],
