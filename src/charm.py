@@ -421,6 +421,11 @@ class CephISCSIGatewayCharmBase(
                     self.adapters)
         logging.info("Rendering config")
         _render_configs()
+        # Make sure the gateway services are enabled after rendering the
+        # configurations and starting those. Those are disabled by
+        # default in the package. LP: #2045828
+        for service_name in self.GW_SERVICES:
+            ch_host.service_enable(service_name)
         logging.info("Setting started state")
         self.peers.announce_ready()
         self._stored.is_started = True

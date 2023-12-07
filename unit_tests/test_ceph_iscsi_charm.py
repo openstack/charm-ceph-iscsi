@@ -158,6 +158,9 @@ class TestCephISCSIGatewayCharmBase(CharmTestCase):
         self.test_admin_password = 'rrrrrrrr'
         self.gwc = MagicMock()
         self.gwcli_client.GatewayClient.return_value = self.gwc
+        patch_srv_enable = patch.object(charm.ch_host, 'service_enable')
+        patch_srv_enable.start()
+        self.addCleanup(patch_srv_enable.stop)
 
         # BEGIN: Workaround until network_get is implemented
         class _TestingOPSModelBackend(_TestingModelBackend):
