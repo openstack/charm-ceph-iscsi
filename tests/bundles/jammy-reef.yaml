@@ -38,6 +38,7 @@ applications:
     num_units: 4
     options:
       gateway-metadata-pool: iscsi-foo-metadata
+      source: *source
     to:
       - '0'
       - '1'

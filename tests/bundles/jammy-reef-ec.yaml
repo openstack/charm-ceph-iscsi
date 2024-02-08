@@ -39,6 +39,7 @@ applications:
       pool-type: erasure-coded
       ec-profile-k: 4
       ec-profile-m: 2
+      source: *source
     to:
       - '0'
       - '1'
