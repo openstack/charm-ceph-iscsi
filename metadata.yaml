@@ -13,7 +13,6 @@ tags:
 series:
 - focal
 - jammy
-- lunar
 subordinate: false
 min-juju-version: 2.7.6
 extra-bindings:
