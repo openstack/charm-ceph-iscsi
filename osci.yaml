@@ -5,14 +5,10 @@
       jobs:
       - ceph-iscsi-focal-quincy
       - ceph-iscsi-focal-quincy-ec
-      - ceph-iscsi-jammy-quincy
-      - ceph-iscsi-jammy-quincy-ec
       - ceph-iscsi-jammy-reef
       - ceph-iscsi-jammy-reef-ec
-      - ceph-iscsi-lunar-quincy:
-          voting: false
-      - ceph-iscsi-lunar-quincy-ec:
-          voting: false
+      - ceph-iscsi-jammy-caracal
+      - ceph-iscsi-jammy-caracal-ec
     vars:
       needs_charm_build: true
       charm_build_name: ceph-iscsi
@@ -21,36 +17,13 @@
 - job:
     name: ceph-iscsi-focal-quincy
     parent: func-target
-    dependencies:
-      - ceph-iscsi-jammy-quincy
     vars:
       tox_extra_args: -- focal
 - job:
     name: ceph-iscsi-focal-quincy-ec
     parent: func-target
-    dependencies:
-      - ceph-iscsi-jammy-quincy
     vars:
       tox_extra_args: -- focal-ec
-
-- job:
-    name: ceph-iscsi-jammy-quincy
-    parent: func-target
-    dependencies:
-      - charm-build
-      - osci-lint
-      - name: tox-py310
-        soft: true
-    vars:
-      tox_extra_args: -- jammy
-- job:
-    name: ceph-iscsi-jammy-quincy-ec
-    parent: func-target
-    dependencies:
-      - ceph-iscsi-jammy-quincy
-    vars:
-      tox_extra_args: -- jammy-ec
-
 - job:
     name: ceph-iscsi-jammy-reef
     parent: func-target
@@ -68,20 +41,15 @@
       - ceph-iscsi-jammy-reef
     vars:
       tox_extra_args: -- jammy-reef-ec
-
 - job:
-    name: ceph-iscsi-lunar-quincy
+    name: ceph-iscsi-jammy-caracal
     parent: func-target
-    voting: false
-    dependencies:
-      - ceph-iscsi-jammy-quincy
     vars:
-      tox_extra_args: -- lunar
+      tox_extra_args: -- jammy-caracal
 - job:
-    name: ceph-iscsi-lunar-quincy-ec
+    name: ceph-iscsi-jammy-caracal-ec
     parent: func-target
-    voting: false
     dependencies:
-      - ceph-iscsi-jammy-quincy
+      - ceph-iscsi-jammy-caracal
     vars:
-      tox_extra_args: -- lunar-ec
+      tox_extra_args: -- jammy-caracal-ec
